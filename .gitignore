@@ -1,0 +1,31 @@
+﻿# Byte-compiled / cache
+__pycache__/
+*.py[cod]
+*.class
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Tools / editors
+.vscode/
+.idea/
+
+# OS junk
+.DS_Store
+
+# Python packaging / build
+build/
+dist/
+*.egg-info/
+
+# Logs & datasets
+*.log
+
+# Jupyter / notebooks
+.ipynb_checkpoints/
+
+# Optional: large binary outputs
+*.npy
+*.bin

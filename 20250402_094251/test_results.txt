@@ -1,0 +1,5 @@
+===== Loopback Test Results =====
+Total frames received and verified: 0
+Successfully verified frames: 0
+Success rate: 0.00%
+================================
