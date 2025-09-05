@@ -11,6 +11,7 @@ import scipy.signal as signal
 import sounddevice as sd
 import argparse
 import time
+import gc
 
 # コマンドライン引数の解析
 parser = argparse.ArgumentParser(description='PLUTO SDR FMラジオ受信テスト')
@@ -22,7 +23,14 @@ args = parser.parse_args()
 
 # PLUTOの初期化
 print(f"PLUTO SDRの初期化 (周波数: {args.freq/1e6} MHz, ゲイン: {args.gain} dB)")
-sdr = adi.Pluto()
+# 接続フォールバック: 既定 → ip:192.168.2.1 → usb
+try:
+    sdr = adi.Pluto()
+except Exception:
+    try:
+        sdr = adi.Pluto(uri="ip:192.168.2.1")
+    except Exception:
+        sdr = adi.Pluto(uri="usb:1.2.5")  # 環境により異なるため最後の手段
 sdr.rx_lo = int(args.freq)
 sdr.sample_rate = int(args.rate)
 sdr.rx_rf_bandwidth = int(args.rate)
@@ -129,9 +137,28 @@ finally:
         stream.close()
     except:
         pass
-    
     # 最終結果の保存
-    plt.savefig('fm_reception.png')
-    print("受信スペクトログラムを保存しました: fm_reception.png")
+    try:
+        plt.savefig('fm_reception.png')
+        print("受信スペクトログラムを保存しました: fm_reception.png")
+    except:
+        pass
+    # 図を明示的にクローズ
+    try:
+        plt.close('all')
+    except:
+        pass
+    # SDRリソースの解放
+    try:
+        if 'sdr' in locals():
+            del sdr
+    except:
+        pass
+    # 少し待ってからGC
+    try:
+        time.sleep(0.2)
+    except:
+        pass
+    gc.collect()
     
 print("PLUTO SDR FMラジオ受信テスト終了")

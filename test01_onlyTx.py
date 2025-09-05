@@ -9,6 +9,7 @@ import adi
 import time
 import matplotlib.pyplot as plt
 import argparse
+import gc
 
 # コマンドライン引数の解析
 parser = argparse.ArgumentParser(description='PLUTO SDR 送信テスト')
@@ -20,7 +21,14 @@ args = parser.parse_args()
 
 # PLUTOの初期化
 print(f"PLUTO SDRの初期化 (周波数: {args.freq/1e6} MHz, ゲイン: {args.gain} dB)")
-sdr = adi.Pluto()
+# 接続フォールバック: 既定 → ip:192.168.2.1 → usb
+try:
+    sdr = adi.Pluto()
+except Exception:
+    try:
+        sdr = adi.Pluto(uri="ip:192.168.2.1")
+    except Exception:
+        sdr = adi.Pluto(uri="usb:1.2.5")
 sdr.tx_lo = int(args.freq)
 sdr.sample_rate = int(args.rate)
 sdr.tx_rf_bandwidth = int(args.rate)
@@ -63,6 +71,20 @@ try:
 except KeyboardInterrupt:
     print("\n送信中断")
 
-# 送信停止
-sdr.tx_destroy_buffer()
+# 送信停止とクリーンアップ
+try:
+    sdr.tx_destroy_buffer()
+except Exception:
+    pass
+try:
+    import matplotlib.pyplot as plt
+    plt.close('all')
+except Exception:
+    pass
+try:
+    del sdr
+except Exception:
+    pass
+time.sleep(0.2)
+gc.collect()
 print("PLUTO SDR送信テスト終了")
